@@ -7,7 +7,7 @@ import re
 from datetime import datetime
 from html import escape
 
-BASE_DOMAIN = "https://orange.realforeclose.com/"
+BASE_DOMAIN = "https://palmbeach.realforeclose.com/"
 CALENDAR_URL = f"{BASE_DOMAIN}/index.cfm?zaction=USER&zmethod=CALENDAR"
 
 DATA_DIR = "data"
@@ -90,7 +90,7 @@ def parse_waiting_records(section_text: str) -> list[dict]:
         r"Final Judgment Amount:\s*(?P<judgment>\$[\d,]+\.\d{2}|Hidden).*?"
         r"Parcel ID:\s*(?P<parcel>\S+).*?"
         r"Property Address:\s*(?P<address>.*?)"
-        r"Assessed Value:\s*(?P<assessed>\$[\d,]+\.\d{2}|Hidden).*?"
+        r"(?:Assessed Value:\s*(?P<assessed>\$[\d,]+\.\d{2}|Hidden).*?)?"
         r"Plaintiff Max Bid:\s*(?P<max_bid>\$[\d,]+\.\d{2}|Hidden)",
         re.DOTALL | re.IGNORECASE,
     )
@@ -117,12 +117,13 @@ def parse_waiting_records(section_text: str) -> list[dict]:
 
         case_no = clean_text(match.group("case"))
         parcel_id = clean_text(match.group("parcel"))
+        assessed_value = clean_text(match.group("assessed") or "")
 
         rows.append({
             "Auction Date": clean_text(match.group("auction_date")),
             "Property Address": address,
             "Final Judgment": clean_text(match.group("judgment")),
-            "Assessed Value": clean_text(match.group("assessed")),
+            "Assessed Value": assessed_value,
             "Plaintiff Max Bid": clean_text(match.group("max_bid")),
             "Case #": case_no,
             "Parcel ID": parcel_id,
